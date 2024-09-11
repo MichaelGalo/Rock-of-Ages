@@ -52,8 +52,15 @@ class RockView(ViewSet):
         """
         try:
             rock = Rock.objects.get(pk=pk)
-            rock.delete()
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
+            # Verify that the pk of the rock owner is the same pk as the authenticated user
+            if rock.user.id == request.auth.user.id:
+                rock.delete()
+                return Response(None, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(
+                    {"message": "You do not own that rock"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
         except Rock.DoesNotExist as ex:
             return Response({"message": ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
